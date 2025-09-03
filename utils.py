@@ -1,17 +1,14 @@
+import os
+import json
 import cv2 as cv
 import numpy as np
-import json
 import matplotlib.pyplot as plt
-from pathlib import Path
-from typing import List, Tuple, Optional
-import gradio as gr
-import os
 
 class Cam:
     """Camera math: poses, transforms, calibration"""
     
     @staticmethod
-    def calibrate_camera(obj_points: List, img_points: List, img_shape: Tuple) -> Tuple:
+    def calibrate_camera(obj_points, img_points, img_shape=gray.shape[::-1]):
         """Camera calibration with proper return"""
         ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(
             obj_points, img_points, img_shape, None, None
@@ -19,40 +16,33 @@ class Cam:
         return ret, mtx, dist, rvecs, tvecs
     
     @staticmethod
-    def prepare_chessboard_points(board_size: Tuple[int, int], square_size: float) -> np.ndarray:
+    def prepare_chessboard_points() -> np.ndarray:
         """Generate 3D chessboard object points"""
-        objp = np.zeros((board_size[0] * board_size[1], 3), np.float32)
-        objp[:, :2] = np.mgrid[0:board_size[0], 0:board_size[1]].T.reshape(-1, 2)
-        objp *= square_size
-        return objp
+        
+        return
     
     @staticmethod
-    def find_chessboard_corners(img: np.ndarray, board_size: Tuple[int, int]) -> Tuple[bool, Optional[np.ndarray]]:
+    def find_chessboard_corners(img, board_size=[9, 6]) -> np.ndarray:
         """Find and refine chessboard corners"""
-        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
-        ret, corners = cv.findChessboardCorners(gray, board_size, None)
-        
-        if ret:
-            criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-            corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
-        
-        return ret, corners
+
+        return
     
     @staticmethod
-    def undistort_image(img: np.ndarray, mtx: np.ndarray, dist: np.ndarray) -> np.ndarray:
+    def undistort_image(img, mtx, dist):
         """Undistort image using camera matrix and distortion coefficients"""
+
         return 
 
 class Img:
     """Image utilities: loading, preprocessing, format conversion"""
     
     @staticmethod
-    def load_image(path: str) -> Optional[np.ndarray]:
+    def load_image(path):
         """Load image from path"""
         return cv.imread(path)
     
     @staticmethod
-    def bgr_to_rgb(img: np.ndarray) -> np.ndarray:
+    def bgr_to_rgb(img):
         """Convert BGR to RGB for display"""
         return cv.cvtColor(img, cv.COLOR_BGR2RGB)
     
