@@ -39,12 +39,12 @@ class Img:
     
     @staticmethod
     # Takes openCV Image
-    def undistort_image(image, mtx, dist):
+    def undistort_image(image, lam, dist):
         h, w = image.shape[:2]
-        newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+        newcameramtx, roi = cv.getOptimalNewCameraMatrix(lam, dist, (w,h), 1, (w,h))
 
         # undistort
-        dst = cv.undistort(image, mtx, dist, None, newcameramtx)
+        dst = cv.undistort(image, lam, dist, None, newcameramtx)
 
         # crop the image
         x, y, w, h = roi
@@ -56,15 +56,29 @@ class Cam:
     """Image utilities: loading, preprocessing, format conversion"""
         
     @staticmethod
-    def ():
+    def get_coord_frame(omega, tau, lam, dist) -> np.ndarray:
+        W = 2 * np.array([
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+            ], dtype=np.float64)
+        
+        rvec = cv.Rodrigues(omega)[0]
+        
+        image_axes, _ = cv.projectPoints(W, rvec, tau, lam, dist)
+        image_axes = image_axes.squeeze().T
+
+        return image_axes
+
+    @staticmethod
+    def get_camera_pos (image, omega, tau) -> np.ndarray:
+        pose = np.block([omega.T, -omega.T @ tau])
+        pose = np.vstack([pose, [0, 0, 0, 1]])
+
+        return pose
 
 class IO:
     """File and device I/O utilities"""
-    
-    @staticmethod
-    def ensure_directory(path: str) -> None:
-        """Create directory if it doesn't exist"""
-        os.makedirs(path, exist_ok=True)
     
     @staticmethod
     def save_calibration_results(results: dict, path: str) -> bool:
@@ -95,9 +109,14 @@ class IO:
         except Exception as e:
             print(f"Error loading calibration results: {e}")
             return None
-    
+
     @staticmethod
-    def get_file_paths(directory: str, extension: str = ".jpg") -> List[str]:
-        """Get all files with given extension in directory"""
-        path = Path(directory)
-        return [str(p) for p in path.glob(f"*{extension}")]
+    def get_images():
+        return
+
+    @staticmethod
+    def upload_images():
+        return
+
+    @staticmethod
+    def clear_img_dir()
