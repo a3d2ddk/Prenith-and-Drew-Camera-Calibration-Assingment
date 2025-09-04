@@ -3,7 +3,6 @@ import json
 import glob
 import cv2 as cv
 import numpy as np
-import matplotlib.pyplot as plt
 
 class Img:
     """Camera math: poses, transforms, calibration"""
@@ -49,7 +48,7 @@ class Img:
         x, y, w, h = roi
         dst = dst[y:y+h, x:x+w]
 
-        return dist
+        return dst
 
 class Cam:
     """Image utilities: loading, preprocessing, format conversion"""
@@ -85,14 +84,12 @@ class IO:
         if (os.path.exists(path)):
             # Convert numpy arrays to lists for JSON serialization
             json_results = {
-                'Lambda': results[0],
-                'Distortion': results[1],
-                'Omega': results[2],
-                'Rvecs': results[3],
-                'Tau': results[4],
+                'out_points': opoints,
+                'in_points': ipoints
             }
             
-            json.dump(json_results, full_path, indent=2)
+            with open(path, 'w') as json_file:
+                json.dump(json_results, json_file, indent=2)
         else:
             print(f"Error saving calibration results: {e}")
         
