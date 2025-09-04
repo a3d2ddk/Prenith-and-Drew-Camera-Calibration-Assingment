@@ -8,7 +8,7 @@ class Img:
     """Camera math: poses, transforms, calibration"""
     
     @staticmethod
-    # Takes a string of openCV images
+    # Takes an array of openCV images
     def find_chessboard_corners(images, board_size=[9, 6]):
         """Returns list of points in real space and on the image plane"""
         # termination criteria
@@ -81,42 +81,68 @@ class IO:
     """File and device I/O utilities"""
     
     @staticmethod
-    def save_calibration_results(results: dict, path: str) -> bool:
+    def save_calibration_results(results):
         """Save calibration results to JSON file"""
-        try:
+        path = './calibration.json'
+
+        if (os.path.exists(path)):
             # Convert numpy arrays to lists for JSON serialization
             json_results = {
-                'reprojection_error': float(results['ret']),
-                'camera_matrix': results['mtx'].tolist(),
+                'reprojection_error': results['ret']),
+                'camera_matrix': results['mtx'],
                 'distortion_coefficients': results['dist'].tolist(),
                 'rotation_vectors': [r.tolist() for r in results['rvecs']],
                 'translation_vectors': [t.tolist() for t in results['tvecs']]
             }
             
-            with open(path, 'w') as f:
-                json.dump(json_results, f, indent=2)
-            return True
-        except Exception as e:
+            json.dump(json_results, full_path, indent=2)
+        else:
             print(f"Error saving calibration results: {e}")
-            return False
+        
+        return
     
     @staticmethod
-    def load_calibration_results(path: str) -> Optional[dict]:
+    def load_calibration_results(path):
         """Load calibration results from JSON file"""
-        try:
-            with open(path, 'r') as f:
-                return json.load(f)
-        except Exception as e:
+        path = './calibration'
+        if (os.path.exists(path)):
+            data = json.loads(json_str)
+            return data
+        else:
             print(f"Error loading calibration results: {e}")
-            return None
+            return
 
+    @staticmethod
+    def store_images(dir_path, files):
+        # Reads all images and saves them to content/images/
+        for image in files:
+            
+            full_path = os.path.join(dir_path, image)
+            
+            if (image.lower().endswith('.jpeg')) and (os.path.exists(full_path)):
+                # Images read as grayscale
+                img = cv.imread(full_path, cv.IMREAD_GRAYSCALE)
+            
+                cv.imwrite('./content/images/' + image, img)
+
+            else:
+                print(f'File: {image} must be a .jpeg file.')
+
+        return
+            
     @staticmethod
     def get_images():
-        return
+        # Reads all image files in content/images
+        images = glob.glob('./content/images/*.jpeg')
+        return images
 
     @staticmethod
-    def upload_images():
+    def remove_images(files):
+        # Deletes specified images in
+        for frame in files:
+            try:
+                os.remove('./content/images/' + frame)
+            except:
+                raise ValueError(f'Could not delete File: {frame}'
         return
 
-    @staticmethod
-    def clear_img_dir()
