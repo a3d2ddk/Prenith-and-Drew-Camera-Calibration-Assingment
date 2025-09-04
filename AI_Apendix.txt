@@ -1,0 +1,9 @@
+Tool & Model
+Claude Sonnet 4.0
+
+Time used
+
+September 2 2025 1:30 pm IST
+
+create a gradio based UI that has a textbox for uploading the images for a camera, 5 buttons, one for processing the data, one for running camera calibration, one for visualizing the poses, one for displaying coordinate systems on the images, another one to run camera distortion.
+Keep the code to minimal, with seperation between classes, like Cam (camera clibration), Img (operation, read, write, bgr_to_clr, resize image), Render(draw coordinate system, visualize the poses, etc), IO (file loading utilities).
