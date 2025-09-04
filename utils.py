@@ -1,5 +1,6 @@
 import os
 import json
+import glob
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,16 +24,14 @@ class Img:
         imgpoints = [] # 2d points in image plane.
 
         for img in images:
-            gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-
             # Find the chess board corners
-            ret, corners = cv.findChessboardCorners(gray, (board_size[0],board_size[1]), None)
+            ret, corners = cv.findChessboardCorners(img, (board_size[0],board_size[1]), None)
 
             # If found, add object points, image points (after refining them)
             if ret == True:
                 objpoints.append(objp)
 
-                corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
+                corners2 = cv.cornerSubPix(img,corners, (11,11), (-1,-1), criteria)
                 imgpoints.append(corners2)
 
         return objpoints, imgpoints
@@ -56,14 +55,12 @@ class Cam:
     """Image utilities: loading, preprocessing, format conversion"""
         
     @staticmethod
-    def get_coord_frame(omega, tau, lam, dist) -> np.ndarray:
+    def get_coord_frame(rvec, tau, lam, dist) -> np.ndarray:
         W = 2 * np.array([
             [0, 1, 0, 0],
             [0, 0, 1, 0],
             [0, 0, 0, 1]
             ], dtype=np.float64)
-        
-        rvec = cv.Rodrigues(omega)[0]
         
         image_axes, _ = cv.projectPoints(W, rvec, tau, lam, dist)
         image_axes = image_axes.squeeze().T
@@ -88,11 +85,11 @@ class IO:
         if (os.path.exists(path)):
             # Convert numpy arrays to lists for JSON serialization
             json_results = {
-                'reprojection_error': results['ret']),
-                'camera_matrix': results['mtx'],
-                'distortion_coefficients': results['dist'].tolist(),
-                'rotation_vectors': [r.tolist() for r in results['rvecs']],
-                'translation_vectors': [t.tolist() for t in results['tvecs']]
+                'Lambda': results[0],
+                'Distortion': results[1],
+                'Omega': results[2],
+                'Rvecs': results[3],
+                'Tau': results[4],
             }
             
             json.dump(json_results, full_path, indent=2)
@@ -113,16 +110,14 @@ class IO:
             return
 
     @staticmethod
-    def store_images(dir_path, files):
+    def store_images(dir_path):
         # Reads all images and saves them to content/images/
-        for image in files:
-            
-            full_path = os.path.join(dir_path, image)
-            
-            if (image.lower().endswith('.jpeg')) and (os.path.exists(full_path)):
+        for file in dir_path:
+            image = os.path.basename(file)
+            if (image.lower().endswith('.jpeg')) and (os.path.exists(file)):
                 # Images read as grayscale
-                img = cv.imread(full_path, cv.IMREAD_GRAYSCALE)
-            
+                img = cv.imread(file, cv.IMREAD_GRAYSCALE)
+
                 cv.imwrite('./content/images/' + image, img)
 
             else:
@@ -133,7 +128,11 @@ class IO:
     @staticmethod
     def get_images():
         # Reads all image files in content/images
-        images = glob.glob('./content/images/*.jpeg')
+        img_list = glob.glob('./content/images/*.jpeg')
+        images = []
+        for img in img_list:
+            img = cv.imread(img, cv.IMREAD_GRAYSCALE)
+            images.append(img)
         return images
 
     @staticmethod
@@ -143,6 +142,6 @@ class IO:
             try:
                 os.remove('./content/images/' + frame)
             except:
-                raise ValueError(f'Could not delete File: {frame}'
+                raise ValueError(f'Could not delete File: {frame}')
         return
 
